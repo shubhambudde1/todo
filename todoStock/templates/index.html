@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock To-Do List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            margin: 20px auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            border-radius: 8px;
+        }
+
+        label {
+            font-size: 16px;
+            color: #555;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: calc(100% - 20px);
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .difference-positive {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .difference-negative {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        button.delete-btn {
+            background-color: #dc3545;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        button.delete-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    
+
+    <h2>Current Stocks</h2>
+    <table id="stockTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Stock</th>
+                <th>Input Value (int1)</th>
+                <th>Current Value (int2)</th>
+                <th>Difference</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in stocks|reverse %}
+                <tr>
+                    <td>{{ stock.id }}</td>
+                    <td>{{ stock.stock }}</td>
+                    <td>{{ stock.int1 }}</td>
+                    <td>{{ stock.int2 }}</td>
+                    <td class="{% if stock.difference|int < 0 %}difference-negative{% else %}difference-positive{% endif %}">
+                        {{ stock.difference }}
+                    </td>
+                    <td>
+                        <button onclick="deleteStock('{{ stock.id }}')">Delete</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        
+    </table>
+
+    <h1>Stock To-Do List</h1>
+    <form id="stockForm">
+        <label for="stock">Stock Name:</label>
+        <input type="text" id="stock" name="stock" required>
+        <br>
+        <label for="int1">Input Value:</label>
+        <input type="number" id="int1" name="int1" required>
+        <br>
+        <button type="submit">Add Stock</button>
+    </form>
+
+    <script>
+        // Add stock functionality
+        document.getElementById('stockForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const response = await fetch('/stocks', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            alert(JSON.stringify(result)); // Show result in alert
+            window.location.reload(); // Reload to update the stock list
+        });
+
+        // Delete stock functionality
+        async function deleteStock(stockId) {
+            if (!stockId) {
+                alert('No stock ID provided');
+                return;
+            }
+            const confirmed = confirm("Are you sure you want to delete this stock?");
+            if (confirmed) {
+                const response = await fetch(`/stocks/${stockId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                alert(JSON.stringify(result)); // Show result in alert
+                window.location.reload(); // Reload to update the stock list
+            }
+        }
+    </script>
+</body>
+</html>
